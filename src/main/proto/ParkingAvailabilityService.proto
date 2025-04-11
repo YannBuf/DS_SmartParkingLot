@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "generated.smartparkinglot.ParkingAvailability";
+option java_outer_classname = "ParkingAvailabilityServiceImpl";
+
+package ParkingAvailabilityService;
+
+
+service ParkingAvailabilityService {
+    // Get real-time information about vacant parking spaces in a parking lot
+    rpc GetRealTimeAvailability(AvailableSpotsRequest) returns (stream AvailableSpotsResponse);
+    rpc GetParkingSpaceStatus(ParkingSpaceStatusRequest) returns (stream ParkingSpaceStatusResponse);
+  }
+  
+  message AvailableSpotsRequest {
+    string parkingZoneId = 1; 
+  }
+  
+  message AvailableSpotsResponse {
+    int32 totalSpots = 1;
+    int32 availableSpots = 2;
+    string timestamp = 3; // Timing of information update
+  }
+  
+  message ParkingSpaceStatusRequest {
+    string parkingZoneId = 1;
+  }
+  
+  message ParkingSpaceStatusResponse {
+    string spotId = 1;  
+    string status = 2;  // for example  "available", "occupied", "maintenance"
+    string timestamp = 3;  // Timing of information update
+  }
+  

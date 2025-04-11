@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "generated.smartparkinglot.ParkingPayment";
+option java_outer_classname = "ParkingPaymentServiceImpl";
+
+package ParkingPaymentService;
+
+service ParkingPaymentService {
+    rpc GetParkingFee(PaymentRequest) returns (PaymentResponse);
+    // Handles the exchange of information at multiple steps in the payment process
+    rpc HandlePayment(stream PaymentInfo) returns (stream PaymentStatus);
+  }
+  
+  message PaymentRequest {
+    string userId = 1;
+    string parkingZoneId = 2;
+    string parkingDuration = 3; 
+  }
+  
+  message PaymentResponse {
+    double feeAmount = 1;
+    string currency = 2;
+    string transactionId = 3;
+    string status = 4;  // for example: PENDING、FAILED、COMPLETED
+  }
+  
+  message PaymentInfo {
+    string userId = 1;
+    double amount = 2;
+
+  }
+  
+  message PaymentStatus {
+    string status = 1;  // "success", "failure"
+    string message = 2;  // Further information such as error details
+    string transactionId = 3;
+  }
+  

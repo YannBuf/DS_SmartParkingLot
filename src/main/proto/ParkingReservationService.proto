@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "generated.smartparkinglot.ParkingReservation";
+option java_outer_classname = "ParkingReservationServiceImpl";
+
+package ParkingReservationService;
+
+service ParkingReservationService {
+    // Users can send multiple parking reservation requests in a row
+    rpc ReserveParkingSpace(stream ReservationRequest) returns (ReservationResponse);
+    rpc CancelReservation(CancelRequest) returns (CancelResponse);
+    rpc CheckReservationStatus(CheckStatusRequest) returns (CheckStatusResponse);
+  }
+  
+  message ReservationRequest {
+    string userId = 1;
+    string parkingZoneId = 2;
+    string spotId = 3;  
+    string startTime = 4;
+    string endTime = 5;
+  }
+  
+  message ReservationResponse {
+    string reservationId = 1;
+    bool success = 2;
+    string message = 3;
+  }
+  
+  message CancelRequest {
+    string reservationId = 1;
+  }
+  
+  message CancelResponse {
+    bool success = 1;
+    string message = 2;
+  }
+  
+  message CheckStatusRequest {
+    string reservationId = 1;  
+  }
+  
+  message CheckStatusResponse {
+    string userId = 1;
+    bool success = 2;
+    string message = 3;  // Scheduled Status Information
+    string startTime = 4;  
+    string endTime = 5;    
+    string spotId = 6; 
+    string status = 7;  // Status (e.g. “not started”, “completed”)
+  }
