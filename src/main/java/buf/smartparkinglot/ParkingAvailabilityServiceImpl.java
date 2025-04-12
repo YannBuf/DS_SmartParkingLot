@@ -32,11 +32,7 @@ public class ParkingAvailabilityServiceImpl extends ParkingAvailabilityServiceGr
                 int availableSpots = 100 - (i * 10); // decreasing availability
                 String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 
-                AvailableSpotsResponse response = AvailableSpotsResponse.newBuilder()
-                        .setTotalSpots(totalSpots)
-                        .setAvailableSpots(availableSpots)
-                        .setTimestamp(timestamp)
-                        .build();
+                AvailableSpotsResponse response = AvailableSpotsResponse.newBuilder().setTotalSpots(totalSpots).setAvailableSpots(availableSpots).setTimestamp(timestamp).build();
                 // Send each response to the client
                 responseObserver.onNext(response);
                 TimeUnit.SECONDS.sleep(1);
@@ -63,7 +59,7 @@ public class ParkingAvailabilityServiceImpl extends ParkingAvailabilityServiceGr
         for(String spot : spotIds){
             String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
             String status = statuses[random.nextInt(statuses.length)];
-            ParkingSpaceStatusResponse response = ParkingSpaceStatusResponse.newBuilder().setSpotId(spot).setStatus(status).setTimestamp(timestamp).build;
+            ParkingSpaceStatusResponse response = ParkingSpaceStatusResponse.newBuilder().setSpotId(spot).setStatus(status).setTimestamp(timestamp).build();
             responseObserver.onNext(response);
         }
         responseObserver.onCompleted();
