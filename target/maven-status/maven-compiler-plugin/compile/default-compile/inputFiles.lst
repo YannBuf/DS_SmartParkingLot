@@ -1,5 +1,7 @@
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingPayment\PaymentStatusOrBuilder.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingReservation\ReservationResponse.java
+C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\buf\smartparkinglot\ParkingPaymentServiceImpl.java
+C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\buf\smartparkinglot\GrpcClientGUI.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingAvailability\ParkingSpaceStatusResponse.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingReservation\CheckStatusResponse.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingAvailability\AvailableSpotsResponse.java
@@ -19,11 +21,14 @@ C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\buf\smartparkingl
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingPayment\PaymentStatus.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingPayment\PaymentInfoOrBuilder.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingReservation\ReservationRequest.java
+C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\buf\smartparkinglot\GrpcServer.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingReservation\CancelRequestOrBuilder.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingPayment\PaymentResponseOrBuilder.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingReservation\CancelRequest.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingReservation\ReservationResponseOrBuilder.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingAvailability\AvailableSpotsResponseOrBuilder.java
+C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\buf\smartparkinglot\ParkingAvailabilityServiceImpl.java
+C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\buf\smartparkinglot\ParkingReservationServiceImpl.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingAvailability\ParkingSpaceStatusRequestOrBuilder.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingPayment\PaymentRequestOrBuilder.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingAvailability\ParkingSpaceStatusResponseOrBuilder.java
@@ -31,5 +36,6 @@ C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartpa
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingPayment\ParkingPaymentServiceImpl.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingPayment\ParkingPaymentServiceGrpc.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingReservation\CancelResponseOrBuilder.java
+C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\buf\smartparkinglot\GrpcClient.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingAvailability\ParkingAvailabilityServiceImpl.java
 C:\Users\19835\Desktop\GRPC\Real\SmartParkingLot\src\main\java\generated\smartparkinglot\ParkingReservation\ReservationRequestOrBuilder.java

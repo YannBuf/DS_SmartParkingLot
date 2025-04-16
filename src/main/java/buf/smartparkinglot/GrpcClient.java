@@ -27,13 +27,25 @@ import java.util.concurrent.TimeUnit;
 public class GrpcClient {
 
     public static void main(String[] args) throws InterruptedException {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051).usePlaintext().build();
+        GrpcServiceDiscovery discovery = new GrpcServiceDiscovery();
 
-        callParkingAvailabilityService(channel);
-        callParkingPaymentService(channel);
-        callParkingReservationService(channel);
+        discovery.discoverService("_grpc._tcp.local.", (host, port) -> {
+            System.out.println("🚀 Connecting to discovered gRPC service at " + host + ":" + port);
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
 
-        channel.shutdownNow();
+            try {
+                callParkingAvailabilityService(channel);
+                callParkingPaymentService(channel);
+                callParkingReservationService(channel);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                channel.shutdownNow();
+            }
+        });
+
+        // Keep thread alive 
+        Thread.sleep(10000);
     }
 
     private static void callParkingAvailabilityService(ManagedChannel channel) throws InterruptedException {

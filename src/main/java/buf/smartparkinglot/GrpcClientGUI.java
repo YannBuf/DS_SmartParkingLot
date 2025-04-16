@@ -31,8 +31,11 @@ public class GrpcClientGUI extends JFrame {
     private JTextField reservationIdField;
 
     private JTextArea outputArea;
-
+    
+    //manage server discover 
     private ManagedChannel channel;
+    private boolean connected = false;
+    
     private ParkingAvailabilityServiceGrpc.ParkingAvailabilityServiceStub availabilityAsyncStub;
     private ParkingPaymentServiceGrpc.ParkingPaymentServiceStub paymentAsyncStub;
     private ParkingPaymentServiceGrpc.ParkingPaymentServiceBlockingStub paymentBlockingStub;
@@ -144,7 +147,7 @@ public class GrpcClientGUI extends JFrame {
 
         return panel;
     }
-
+    
     private void simulateRealTimeAvailability() {
         String zone = zoneIdField.getText().trim();
         AvailableSpotsRequest request = AvailableSpotsRequest.newBuilder().setParkingZoneId(zone).build();

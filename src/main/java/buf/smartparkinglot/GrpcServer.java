@@ -12,18 +12,26 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import java.io.IOException;
 
+// jmDNS
+import buf.smartparkinglot.GrpcServiceRegistrar;
+
+
 
 public class GrpcServer {
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        // Create a new gRPC server on port 50051 and register the services.
-        Server server = ServerBuilder.forPort(50051).addService(new buf.smartparkinglot.ParkingAvailabilityServiceImpl()).addService(new buf.smartparkinglot.ParkingPaymentServiceImpl()).addService(new buf.smartparkinglot.ParkingReservationServiceImpl()).build();
-
-        // Start the server
+        int port = 5051;
+        
+        //start grpc server
+        Server server = ServerBuilder.forPort(port).addService(new ParkingAvailabilityServiceImpl()).addService(new ParkingPaymentServiceImpl()).addService(new ParkingReservationServiceImpl()).build();
         server.start();
-        System.out.println("gRPC Server started on port " + server.getPort());
-
-        // Keep the server running until terminated
+        System.out.println("gRPC Server started on port " + port);
+        
+        //Register service via jmDNS
+        GrpcServiceRegistrar registrar = new GrpcServiceRegistrar();
+        registrar.registerService("SmartParkingGRPC", port, "gRPC service for smart parking lot");
+        
+        //Keep server alive
         server.awaitTermination();
     }
 }

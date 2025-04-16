@@ -39,6 +39,12 @@
 <artifactId>guava</artifactId>
 <version>28.2-jre</version>
 </dependency>
+<dependency>
+    <groupId>org.jmdns</groupId>
+    <artifactId>jmdns</artifactId>
+    <version>3.5.7</version>
+</dependency>
+
 <!--   added this to resolve issue with javax.annotation not found  -->
 <dependency>
 <groupId>javax.annotation</groupId>
