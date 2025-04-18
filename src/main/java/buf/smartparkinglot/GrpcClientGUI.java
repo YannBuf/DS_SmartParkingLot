@@ -8,10 +8,6 @@ package buf.smartparkinglot;
  *
  * @author 19835
  */
-import generated.smartparkinglot.ParkingAvailability.*;
-import generated.smartparkinglot.ParkingPayment.*;
-import generated.smartparkinglot.ParkingReservation.*;
-
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -19,28 +15,33 @@ import io.grpc.stub.StreamObserver;
 import javax.swing.*;
 import java.awt.*;
 
+import buf.smartparkinglot.ParkingAvailabilityClient;
+import buf.smartparkinglot.ParkingPaymentClient;
+import buf.smartparkinglot.ParkingReservationClient;
+
+import generated.smartparkinglot.ParkingAvailability.*;
+import generated.smartparkinglot.ParkingPayment.*;
+import generated.smartparkinglot.ParkingReservation.*;
+
+import buf.jmDNS.GrpcServiceDiscovery;
+
 public class GrpcClientGUI extends JFrame {
 
-    private JTextField zoneIdField;
-    private JTextField spotIdField;
-    private JTextField userIdField;
-    private JTextField durationField;
+    private final JTextField availabilityZoneIdField = new JTextField(15);
+    private final JTextField paymentZoneIdField = new JTextField(15);
+    private final JTextField reservationZoneIdField = new JTextField(15);
+    private final JTextField spotIdField = new JTextField(15);
+    private final JTextField userIdField = new JTextField(15);
+    private final JTextField durationField = new JTextField(15);
+    private final JTextField startTimeField = new JTextField(15);
+    private final JTextField endTimeField = new JTextField(15);
+    private final JTextField reservationIdField = new JTextField(15);
+    private final JTextField reservationUserIdField = new JTextField(15);
+    private final JTextArea outputArea = new JTextArea(10, 80);
 
-    private JTextField startTimeField;
-    private JTextField endTimeField;
-    private JTextField reservationIdField;
-
-    private JTextArea outputArea;
-    
-    //manage server discover 
-    private ManagedChannel channel;
-    private boolean connected = false;
-    
-    private ParkingAvailabilityServiceGrpc.ParkingAvailabilityServiceStub availabilityAsyncStub;
-    private ParkingPaymentServiceGrpc.ParkingPaymentServiceStub paymentAsyncStub;
-    private ParkingPaymentServiceGrpc.ParkingPaymentServiceBlockingStub paymentBlockingStub;
-    private ParkingReservationServiceGrpc.ParkingReservationServiceStub reservationAsyncStub;
-    private ParkingReservationServiceGrpc.ParkingReservationServiceBlockingStub reservationBlockingStub;
+    private ParkingAvailabilityClient availabilityClient;
+    private ParkingPaymentClient paymentClient;
+    private ParkingReservationClient reservationClient;
 
     public GrpcClientGUI() {
         setTitle("Smart Parking Lot Client");
@@ -49,12 +50,9 @@ public class GrpcClientGUI extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        channel = ManagedChannelBuilder.forAddress("localhost", 50051).usePlaintext().build();
-        availabilityAsyncStub = ParkingAvailabilityServiceGrpc.newStub(channel);
-        paymentAsyncStub = ParkingPaymentServiceGrpc.newStub(channel);
-        paymentBlockingStub = ParkingPaymentServiceGrpc.newBlockingStub(channel);
-        reservationAsyncStub = ParkingReservationServiceGrpc.newStub(channel);
-        reservationBlockingStub = ParkingReservationServiceGrpc.newBlockingStub(channel);
+        outputArea.setEditable(false);
+
+        initGrpcClients();
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.add("Availability", buildAvailabilityPanel());
@@ -62,249 +60,251 @@ public class GrpcClientGUI extends JFrame {
         tabs.add("Payment", buildPaymentPanel());
 
         add(tabs, BorderLayout.CENTER);
-
-        outputArea = new JTextArea(10, 80);
-        outputArea.setEditable(false);
         add(new JScrollPane(outputArea), BorderLayout.SOUTH);
     }
 
+    private void initGrpcClients() {
+        GrpcServiceDiscovery discovery = new GrpcServiceDiscovery();
+        discovery.discoverService("_grpc._tcp.local.", (host, port) -> {
+            System.out.println("Discovered service at " + host + ":" + port);
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
+            availabilityClient = new ParkingAvailabilityClient(channel);
+            paymentClient = new ParkingPaymentClient(channel);
+            reservationClient = new ParkingReservationClient(channel);
+        });
+    }
+
     private JPanel buildAvailabilityPanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 2));
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        inputPanel.setBorder(BorderFactory.createTitledBorder("Zone Info"));
+        inputPanel.add(new JLabel("Parking Zone ID:"));
+        inputPanel.add(availabilityZoneIdField);
 
-        zoneIdField = new JTextField();
-
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBorder(BorderFactory.createTitledBorder("Actions"));
         JButton getRealTimeBtn = new JButton("Get Real-Time Availability");
         JButton getStatusBtn = new JButton("Get Space Status");
 
-        panel.add(new JLabel("Parking Zone ID:"));
-        panel.add(zoneIdField);
-        panel.add(getRealTimeBtn);
-        panel.add(getStatusBtn);
+        getRealTimeBtn.addActionListener(e -> getRealTimeAvailability());
+        getStatusBtn.addActionListener(e -> getSpaceStatus());
 
-        getRealTimeBtn.addActionListener(e -> simulateRealTimeAvailability());
-        getStatusBtn.addActionListener(e -> simulateSpaceStatus());
+        buttonPanel.add(getRealTimeBtn);
+        buttonPanel.add(getStatusBtn);
 
+        panel.add(inputPanel, BorderLayout.NORTH);
+        panel.add(buttonPanel, BorderLayout.CENTER);
         return panel;
     }
 
     private JPanel buildReservationPanel() {
-        JPanel panel = new JPanel(new GridLayout(6, 2));
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBorder(BorderFactory.createTitledBorder("Reservation Info"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        userIdField = new JTextField();
-        spotIdField = new JTextField();
-        startTimeField = new JTextField();
-        endTimeField = new JTextField();
-        reservationIdField = new JTextField();
+        addFormRow(formPanel, gbc, 0, "User ID:", reservationUserIdField);
+        addFormRow(formPanel, gbc, 1, "Zone ID:", reservationZoneIdField);
+        addFormRow(formPanel, gbc, 2, "Spot ID:", spotIdField);
+        addFormRow(formPanel, gbc, 3, "Start Time:", startTimeField);
+        addFormRow(formPanel, gbc, 4, "End Time:", endTimeField);
+        addFormRow(formPanel, gbc, 5, "Reservation ID:", reservationIdField);
 
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBorder(BorderFactory.createTitledBorder("Actions"));
         JButton reserveBtn = new JButton("Reserve Spot");
         JButton cancelBtn = new JButton("Cancel Reservation");
         JButton checkStatusBtn = new JButton("Check Status");
 
-        panel.add(new JLabel("User ID:"));
-        panel.add(userIdField);
-        panel.add(new JLabel("Zone ID:"));
-        panel.add(zoneIdField);
-        panel.add(new JLabel("Spot ID:"));
-        panel.add(spotIdField);
-        panel.add(new JLabel("Start Time:"));
-        panel.add(startTimeField);
-        panel.add(new JLabel("End Time:"));
-        panel.add(endTimeField);
-        panel.add(new JLabel("Reservation ID:"));
-        panel.add(reservationIdField);
+        reserveBtn.addActionListener(e -> reserveParkingSpot());
+        cancelBtn.addActionListener(e -> cancelReservation());
+        checkStatusBtn.addActionListener(e -> checkReservationStatus());
 
-        panel.add(reserveBtn);
-        panel.add(cancelBtn);
-        panel.add(checkStatusBtn);
+        buttonPanel.add(reserveBtn);
+        buttonPanel.add(cancelBtn);
+        buttonPanel.add(checkStatusBtn);
 
-        reserveBtn.addActionListener(e -> simulateReservation());
-        cancelBtn.addActionListener(e -> simulateCancelReservation());
-        checkStatusBtn.addActionListener(e -> simulateCheckStatus());
-
+        panel.add(formPanel, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
         return panel;
     }
 
     private JPanel buildPaymentPanel() {
-        JPanel panel = new JPanel(new GridLayout(4, 2));
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        inputPanel.setBorder(BorderFactory.createTitledBorder("Payment Info"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        durationField = new JTextField();
+        addFormRow(inputPanel, gbc, 0, "User ID:", userIdField);
+        addFormRow(inputPanel, gbc, 1, "Zone ID:", paymentZoneIdField);
+        addFormRow(inputPanel, gbc, 2, "Duration (minutes):", durationField);
 
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBorder(BorderFactory.createTitledBorder("Actions"));
         JButton calcFeeBtn = new JButton("Calculate Fee");
         JButton handlePaymentBtn = new JButton("Handle Payment");
 
-        panel.add(new JLabel("User ID:"));
-        panel.add(userIdField);
-        panel.add(new JLabel("Zone ID:"));
-        panel.add(zoneIdField);
-        panel.add(new JLabel("Duration:"));
-        panel.add(durationField);
+        calcFeeBtn.addActionListener(e -> calculateFee());
+        handlePaymentBtn.addActionListener(e -> handlePayment());
 
-        panel.add(calcFeeBtn);
-        panel.add(handlePaymentBtn);
+        buttonPanel.add(calcFeeBtn);
+        buttonPanel.add(handlePaymentBtn);
 
-        calcFeeBtn.addActionListener(e -> simulateCalculateFee());
-        handlePaymentBtn.addActionListener(e -> simulateHandlePayment());
-
+        panel.add(inputPanel, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
         return panel;
     }
-    
-    private void simulateRealTimeAvailability() {
-        String zone = zoneIdField.getText().trim();
-        AvailableSpotsRequest request = AvailableSpotsRequest.newBuilder().setParkingZoneId(zone).build();
 
-        availabilityAsyncStub.getRealTimeAvailability(request, new StreamObserver<AvailableSpotsResponse>() {
+    private void addFormRow(JPanel panel, GridBagConstraints gbc, int row, String label, JTextField field) {
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        panel.add(new JLabel(label), gbc);
+        gbc.gridx = 1;
+        panel.add(field, gbc);
+    }
+
+    private void getRealTimeAvailability() {
+        String zone = availabilityZoneIdField.getText().trim();
+        availabilityClient.getRealTimeAvailability(zone, new StreamObserver<AvailableSpotsResponse>() {
             @Override
             public void onNext(AvailableSpotsResponse value) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Available: " + value.getAvailableSpots() + 
-                        " / " + value.getTotalSpots() + "\nTimestamp: " + value.getTimestamp() + "\n\n"));
+                appendOutput("Available: " + value.getAvailableSpots() + "/" + value.getTotalSpots()
+                        + "\nTimestamp: " + value.getTimestamp() + "\n\n");
             }
 
             @Override
             public void onError(Throwable t) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Error: " + t.getMessage() + "\n"));
+                appendOutput("Error: " + t.getMessage() + "\n");
             }
 
             @Override
             public void onCompleted() {
-                SwingUtilities.invokeLater(() -> outputArea.append("Done receiving availability.\n\n"));
+                appendOutput("Done receiving availability.\n\n");
             }
         });
     }
 
-    private void simulateSpaceStatus() {
-        String zone = zoneIdField.getText().trim();
-        ParkingSpaceStatusRequest request = ParkingSpaceStatusRequest.newBuilder().setParkingZoneId(zone).build();
-
-        availabilityAsyncStub.getParkingSpaceStatus(request, new StreamObserver<ParkingSpaceStatusResponse>() {
+    private void getSpaceStatus() {
+        String zone = availabilityZoneIdField.getText().trim();
+        availabilityClient.getParkingSpaceStatus(zone, new StreamObserver<ParkingSpaceStatusResponse>() {
             @Override
             public void onNext(ParkingSpaceStatusResponse value) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Spot " + value.getSpotId() + " - " + value.getStatus() +
-                        " (Time: " + value.getTimestamp() + ")\n"));
+                appendOutput("Spot " + value.getSpotId() + " - " + value.getStatus()
+                        + " (Time: " + value.getTimestamp() + ")\n");
             }
 
             @Override
             public void onError(Throwable t) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Error: " + t.getMessage() + "\n"));
+                appendOutput("Error: " + t.getMessage() + "\n");
             }
 
             @Override
             public void onCompleted() {
-                SwingUtilities.invokeLater(() -> outputArea.append("Done receiving spot statuses.\n\n"));
+                appendOutput("Done receiving spot statuses.\n\n");
             }
         });
     }
+    
+    private void reserveParkingSpot(){
+        String userId = reservationUserIdField.getText().trim();
+    String zoneId = reservationZoneIdField.getText().trim();
+    String spotId = spotIdField.getText().trim();
+    String start = startTimeField.getText().trim();
+    String end = endTimeField.getText().trim();
 
-    private void simulateCalculateFee() {
-        PaymentRequest request = PaymentRequest.newBuilder()
-                .setUserId(userIdField.getText().trim())
-                .setParkingZoneId(zoneIdField.getText().trim())
-                .setParkingDuration(durationField.getText().trim())
-                .build();
+    ReservationRequest request = ReservationRequest.newBuilder()
+            .setUserId(userId)
+            .setParkingZoneId(zoneId)
+            .setSpotId(spotId)
+            .setStartTime(start)
+            .setEndTime(end)
+            .build();
 
-        new Thread(() -> {
-            try {
-                PaymentResponse response = paymentBlockingStub.getParkingFee(request);
-                SwingUtilities.invokeLater(() -> outputArea.append("Fee: $" + response.getFeeAmount() + " " + response.getCurrency() +
-                        " | Transaction ID: " + response.getTransactionId() + " | Status: " + response.getStatus() + "\n\n"));
-            } catch (Exception e) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Error: " + e.getMessage() + "\n"));
+    reservationClient.reserveParkingSpaces(
+            java.util.List.of(request),
+            new StreamObserver<ReservationResponse>() {
+                @Override
+                public void onNext(ReservationResponse response) {
+                    appendOutput("Reservation ID: " + response.getReservationId() +
+                            " | Success: " + response.getSuccess() + "\n");
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    appendOutput("Reservation Error: " + t.getMessage() + "\n");
+                }
+
+                @Override
+                public void onCompleted() {
+                    appendOutput("Reservation process completed.\n\n");
+                }
             }
-        }).start();
+    );
     }
 
-    private void simulateHandlePayment() {
-        StreamObserver<PaymentInfo> requestObserver = paymentAsyncStub.handlePayment(new StreamObserver<PaymentStatus>() {
+    private void calculateFee() {
+        String userId = userIdField.getText().trim();
+        String parkingZoneId = reservationZoneIdField.getText().trim();
+        String parkingDuration = durationField.getText().trim();
+        
+        PaymentResponse response = paymentClient.getParkingFee(userId, parkingZoneId, parkingDuration);
+        appendOutput("Fee: $" + response.getFeeAmount() + " " + response.getCurrency()
+                + " | Transaction ID: " + response.getTransactionId() + " | Status: " + response.getStatus() + "\n\n");
+    }
+
+    private void handlePayment() {
+        paymentClient.handlePayment(new StreamObserver<PaymentStatus>() {
             @Override
             public void onNext(PaymentStatus value) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Payment " + value.getStatus() +
-                        " | Message: " + value.getMessage() + " | Transaction ID: " + value.getTransactionId() + "\n\n"));
+                appendOutput("Payment " + value.getStatus() + " | Message: " + value.getMessage()
+                        + " | Transaction ID: " + value.getTransactionId() + "\n\n");
             }
 
             @Override
             public void onError(Throwable t) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Payment Error: " + t.getMessage() + "\n"));
+                appendOutput("Payment Error: " + t.getMessage() + "\n");
             }
 
             @Override
             public void onCompleted() {
-                SwingUtilities.invokeLater(() -> outputArea.append("Payment stream completed.\n\n"));
+                appendOutput("Payment stream completed.\n\n");
             }
         });
+    }
+    
 
-        PaymentInfo info = PaymentInfo.newBuilder()
-                .setUserId(userIdField.getText().trim())
-                .setAmount(10.50)
-                .build();
 
-        requestObserver.onNext(info);
-        requestObserver.onCompleted();
+    private void cancelReservation() {
+        String reservationId = reservationIdField.getText().trim();
+        reservationClient.cancelReservation(reservationId);
+        appendOutput("Cancellation request sent for ID: " + reservationId + "\n");
     }
 
-    private void simulateReservation() {
-        StreamObserver<ReservationResponse> responseObserver = new StreamObserver<ReservationResponse>() {
-            @Override
-            public void onNext(ReservationResponse response) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Reservation " +
-                        (response.getSuccess() ? "Success" : "Failed") +
-                        " | ID: " + response.getReservationId() + " | Message: " + response.getMessage() + "\n\n"));
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Reservation Error: " + t.getMessage() + "\n"));
-            }
-
-            @Override
-            public void onCompleted() {
-                SwingUtilities.invokeLater(() -> outputArea.append("Reservation stream completed.\n\n"));
-            }
-        };
-
-        StreamObserver<ReservationRequest> requestObserver = reservationAsyncStub.reserveParkingSpace(responseObserver);
-
-        ReservationRequest req = ReservationRequest.newBuilder()
-                .setUserId(userIdField.getText().trim())
-                .setParkingZoneId(zoneIdField.getText().trim())
-                .setSpotId(spotIdField.getText().trim())
-                .setStartTime(startTimeField.getText().trim())
-                .setEndTime(endTimeField.getText().trim())
-                .build();
-
-        requestObserver.onNext(req);
-        requestObserver.onCompleted();
+    private void checkReservationStatus() {
+        String reservationId = reservationIdField.getText().trim();
+        try {
+            CheckStatusResponse response = reservationClient.checkReservationStatus(reservationId);
+            appendOutput("Reservation Status:\n" +
+                    "User ID: " + response.getUserId() + "\n" +
+                    "Spot ID: " + response.getSpotId() + "\n" +
+                    "Status: " + response.getStatus() + "\n" +
+                    "Start Time: " + response.getStartTime() + "\n" +
+                    "End Time: " + response.getEndTime() + "\n" +
+                    "Message: " + response.getMessage() + "\n" +
+                    "Success: " + response.getSuccess() + "\n\n");
+        } catch (Exception e) {
+            appendOutput("Check Status Error: " + e.getMessage() + "\n");
+        }
     }
 
-    private void simulateCancelReservation() {
-        CancelRequest request = CancelRequest.newBuilder().setReservationId(reservationIdField.getText().trim()).build();
 
-        new Thread(() -> {
-            try {
-                CancelResponse response = reservationBlockingStub.cancelReservation(request);
-                SwingUtilities.invokeLater(() -> outputArea.append("Cancellation " +
-                        (response.getSuccess() ? "Success" : "Failed") +
-                        " | Message: " + response.getMessage() + "\n\n"));
-            } catch (Exception e) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Error: " + e.getMessage() + "\n"));
-            }
-        }).start();
-    }
 
-    private void simulateCheckStatus() {
-        CheckStatusRequest request = CheckStatusRequest.newBuilder()
-                .setReservationId(reservationIdField.getText().trim())
-                .build();
-
-        new Thread(() -> {
-            try {
-                CheckStatusResponse res = reservationBlockingStub.checkReservationStatus(request);
-                SwingUtilities.invokeLater(() -> outputArea.append(
-                        "User: " + res.getUserId() + "\nSpot: " + res.getSpotId() +
-                                "\nStart: " + res.getStartTime() + "\nEnd: " + res.getEndTime() +
-                                "\nStatus: " + res.getStatus() + "\n\n"));
-            } catch (Exception e) {
-                SwingUtilities.invokeLater(() -> outputArea.append("Error: " + e.getMessage() + "\n"));
-            }
-        }).start();
+    private void appendOutput(String text) {
+        SwingUtilities.invokeLater(() -> outputArea.append(text));
     }
 
     public static void main(String[] args) {
@@ -314,4 +314,3 @@ public class GrpcClientGUI extends JFrame {
         });
     }
 }
-

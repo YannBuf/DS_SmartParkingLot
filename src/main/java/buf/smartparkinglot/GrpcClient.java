@@ -1,4 +1,13 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package buf.smartparkinglot;
+
+/**
+ *
+ * @author 19835
+ */
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -24,6 +33,12 @@ import generated.smartparkinglot.ParkingReservation.ReservationResponse;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+//For DNS
+import buf.jmDNS.*;
+
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
+
 public class GrpcClient {
 
     public static void main(String[] args) throws InterruptedException {
@@ -31,7 +46,9 @@ public class GrpcClient {
 
         discovery.discoverService("_grpc._tcp.local.", (host, port) -> {
             System.out.println("🚀 Connecting to discovered gRPC service at " + host + ":" + port);
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port)
+                    .usePlaintext()
+                    .build();
 
             try {
                 callParkingAvailabilityService(channel);

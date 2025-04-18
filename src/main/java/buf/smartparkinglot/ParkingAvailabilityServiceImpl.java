@@ -14,25 +14,61 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import generated.smartparkinglot.ParkingAvailability.*;
 import java.util.Random;
+import java.util.*;
+
 
 // Service implementation for ParkingAvailabilityService.
 public class ParkingAvailabilityServiceImpl extends ParkingAvailabilityServiceGrpc.ParkingAvailabilityServiceImplBase{
 
+    private static final String[] STATUSES = {"available", "occupied", "maintenance"};
+    private static final int TOTAL_SPOTS_PER_ZONE = 100;
+    private static final List<String> ZONES = Arrays.asList("A", "B", "C", "D", "E");
+
+    private final Random random = new Random();
+
+    //Simulate Parking Lot Data
+    private Map<String, List<String>> generateParkingSpots() {
+        Map<String, List<String>> zoneSpots = new HashMap<>();
+        for (String zone : ZONES) {
+            List<String> spots = new ArrayList<>();
+            for (int i = 1; i <= TOTAL_SPOTS_PER_ZONE; i++) {
+                spots.add(zone + i);
+            }
+            zoneSpots.put(zone, spots);
+        }
+        return zoneSpots;
+    }
+    //Generate data
+    private final Map<String, List<String>> parkingSpotsByZone = generateParkingSpots();
+    
+    
     // Implements the GetRealTimeAvailability streaming RPC
     @Override
     public void getRealTimeAvailability(AvailableSpotsRequest request, StreamObserver<AvailableSpotsResponse> responseObserver) {
-        // Simulate sending real-time updates every second for 5 seconds
-        String parkingZoneId = request.getParkingZoneId();
-        System.out.println("Received GetRealTimeAvailability request for parkingZoneId: " + parkingZoneId);
 
+        // Simulate sending real-time updates every second for 5 seconds
+        String parkingZoneId = request.getParkingZoneId().toUpperCase();
+        System.out.println("Received GetRealTimeAvailability request for parkingZoneId: " + parkingZoneId);
+        
+        //If zone Id not in the list return Zone not found
+        if(!parkingSpotsByZone.containsKey(parkingZoneId)){
+            responseObserver.onError(new IllegalArgumentException("Zone '" + parkingZoneId + "' not found."));
+            return;
+        }
+        
         try {
             for (int i = 0; i < 5; i++) {
                 // Example: total spots is always 100; available spots change each iteration.
-                int totalSpots = 100;
-                int availableSpots = 100 - (i * 10); // decreasing availability
+                int totalSpots = TOTAL_SPOTS_PER_ZONE;
+                int availableSpots = random.nextInt(totalSpots + 1); // 0~100
                 String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 
-                AvailableSpotsResponse response = AvailableSpotsResponse.newBuilder().setTotalSpots(totalSpots).setAvailableSpots(availableSpots).setTimestamp(timestamp).build();
+                AvailableSpotsResponse response = AvailableSpotsResponse.newBuilder()
+                        .setTotalSpots(totalSpots)
+                        .setAvailableSpots(availableSpots)
+                        .setTimestamp(timestamp)
+                        .build();
+                
                 // Send each response to the client
                 responseObserver.onNext(response);
                 TimeUnit.SECONDS.sleep(1);
@@ -41,25 +77,32 @@ public class ParkingAvailabilityServiceImpl extends ParkingAvailabilityServiceGr
             // Pass the error to the client if something goes wrong
             responseObserver.onError(e);
         }
-        // Indicate that the streaming is complete
         responseObserver.onCompleted();
     }
 
     // Implements the GetParkingSpaceStatus streaming RPC
     @Override
     public void getParkingSpaceStatus(ParkingSpaceStatusRequest request, StreamObserver<ParkingSpaceStatusResponse> responseObserver) {
-        String parkingZoneId = request.getParkingZoneId();
+        String parkingZoneId = request.getParkingZoneId().toUpperCase();
         System.out.println("Received GetParkingSpaceStatus request for parkingZoneId: " + parkingZoneId);
 
-        // Simulate status updates for three parking spots
-        String[] spotIds = {"A1", "A2", "A3", "A4", "A5", "A6","B1", "B2", "B3", "B4", "B5", "B6","C1", "C2", "C3", "C4", "C5", "C6"};
-        String[] statuses = {"available", "occupied", "maintenance"};
+        if (!parkingSpotsByZone.containsKey(parkingZoneId)) {
+            responseObserver.onError(new IllegalArgumentException("Zone '" + parkingZoneId + "' not found."));
+            return;
+        }
+        
+        List<String> spotIds = parkingSpotsByZone.get(parkingZoneId);
 
-        Random random = new Random();
-        for(String spot : spotIds){
+        for (String spotId : spotIds) {
             String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-            String status = statuses[random.nextInt(statuses.length)];
-            ParkingSpaceStatusResponse response = ParkingSpaceStatusResponse.newBuilder().setSpotId(spot).setStatus(status).setTimestamp(timestamp).build();
+            String status = STATUSES[random.nextInt(STATUSES.length)];
+
+            ParkingSpaceStatusResponse response = ParkingSpaceStatusResponse.newBuilder()
+                    .setSpotId(spotId)
+                    .setStatus(status)
+                    .setTimestamp(timestamp)
+                    .build();
+
             responseObserver.onNext(response);
         }
         responseObserver.onCompleted();

@@ -12,22 +12,35 @@ import io.grpc.stub.StreamObserver;
 import java.util.UUID;
 import generated.smartparkinglot.ParkingReservation.*;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+
+
 // Service implementation for ParkingReservationService.
 public class ParkingReservationServiceImpl extends ParkingReservationServiceGrpc.ParkingReservationServiceImplBase {
+    //Using ConcurrentHashMap save reservation infomation
+    private final Map<String, ReservationRequest> reservations = new ConcurrentHashMap<>();
 
     // Implements ReserveParkingSpace client-streaming RPC
     @Override
     public StreamObserver<ReservationRequest> reserveParkingSpace(final StreamObserver<ReservationResponse> responseObserver) {
         return new StreamObserver<ReservationRequest>() {
-            // A counter to keep track of the number of requests (for demo)
+            // A counter to keep track of the number of requests
             int requestCount = 0;
+            
+            //save last reservation Id
+            String lastReservationId = null;
 
             @Override
             public void onNext(ReservationRequest request) {
                 // Process each reservation request from the stream
                 requestCount++;
                 System.out.println("Received ReservationRequest from userId: " + request.getUserId() + ", for spot: " + request.getSpotId());
-                // In a real scenario, you would validate and temporarily hold the reservation.
+                
+                //Generates a unique reservationId and stores the reservation information
+                String reservationId = UUID.randomUUID().toString();
+                reservations.put(reservationId, request);
+                lastReservationId = reservationId;
             }
 
             @Override
@@ -38,11 +51,15 @@ public class ParkingReservationServiceImpl extends ParkingReservationServiceGrpc
             @Override
             public void onCompleted() {
                 // Once the client has sent all requests, send a summary response
-                // For this demo, we assume success if at least one request was received.
-                boolean success = requestCount > 0;
+                
+                boolean success = lastReservationId != null;
                 String message = success ? "Reservation(s) successful" : "No reservation requests received";
-                String reservationId = UUID.randomUUID().toString();
-                ReservationResponse response = ReservationResponse.newBuilder().setReservationId(reservationId).setSuccess(success).setMessage(message).build();
+
+                ReservationResponse response = ReservationResponse.newBuilder()
+                    .setReservationId(lastReservationId)
+                    .setSuccess(success)
+                    .setMessage(message)
+                    .build();
                 responseObserver.onNext(response);
                 responseObserver.onCompleted();
             }
@@ -52,20 +69,55 @@ public class ParkingReservationServiceImpl extends ParkingReservationServiceGrpc
     // Implements CancelReservation unary RPC
     @Override
     public void cancelReservation(CancelRequest request, StreamObserver<CancelResponse> responseObserver) {
-        System.out.println("Received CancelReservation for reservationId: " + request.getReservationId());
-        // Simulate cancellation logic (for demo, always successful)
-        CancelResponse response = CancelResponse.newBuilder().setSuccess(true).setMessage("Reservation cancelled successfully").build();
-        responseObserver.onNext(response);
+        String reservationId = request.getReservationId();
+        System.out.println("Received CancelReservation for reservationId: " + reservationId);
+        
+        if (reservations.containsKey(reservationId)) {
+            reservations.remove(reservationId);
+            CancelResponse response = CancelResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("Reservation cancelled successfully")
+                    .build();
+            responseObserver.onNext(response);
+        } else {
+            CancelResponse response = CancelResponse.newBuilder()
+                    .setSuccess(false)
+                    .setMessage("Reservation not found")
+                    .build();
+            responseObserver.onNext(response);
+        }
+        System.out.println("Cancel response for reservationId " + reservationId + ": " + responseObserver);
         responseObserver.onCompleted();
     }
 
     // Implements CheckReservationStatus unary RPC
     @Override
     public void checkReservationStatus(CheckStatusRequest request, StreamObserver<CheckStatusResponse> responseObserver) {
-        System.out.println("Received CheckReservationStatus for reservationId: " + request.getReservationId());
-        // Simulate returning scheduled status information
-        CheckStatusResponse response = CheckStatusResponse.newBuilder().setUserId("user_123").setSuccess(true).setMessage("Reservation is confirmed and scheduled").setStartTime("2025-04-11 08:00:00").setEndTime("2025-04-11 10:00:00").setSpotId("A1").setStatus("not started").build();
-        responseObserver.onNext(response);
+        String reservationId = request.getReservationId();
+        System.out.println("Received CheckReservationStatus for reservationId: " + reservationId);
+
+        ReservationRequest reservation = reservations.get(reservationId);
+        if (reservation != null) {
+    
+            CheckStatusResponse response = CheckStatusResponse.newBuilder()
+                    .setUserId(reservation.getUserId())
+                    .setSuccess(true)
+                    .setMessage("Reservation is confirmed and scheduled")
+                    .setStartTime(reservation.getStartTime())
+                    .setEndTime(reservation.getEndTime())
+                    .setSpotId(reservation.getSpotId())
+                    .setStatus("not started") //only for test
+                    .build();
+            responseObserver.onNext(response);
+        } else {
+            CheckStatusResponse response = CheckStatusResponse.newBuilder()
+                    .setSuccess(false)
+                    .setMessage("Reservation not found")
+                    .build();
+            responseObserver.onNext(response);
+        }
+        System.out.println("CheckStatus response for reservationId " + reservationId + ": " + responseObserver);
         responseObserver.onCompleted();
     }
 }
+
