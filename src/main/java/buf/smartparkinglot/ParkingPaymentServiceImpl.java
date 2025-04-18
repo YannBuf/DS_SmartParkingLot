@@ -16,7 +16,6 @@ import generated.smartparkinglot.ParkingPayment.*;
 public class ParkingPaymentServiceImpl extends ParkingPaymentServiceGrpc.ParkingPaymentServiceImplBase {
 
     // Implements the GetParkingFee unary RPC
-    // Implements the GetParkingFee unary RPC
     @Override
     public void getParkingFee(PaymentRequest request, StreamObserver<PaymentResponse> responseObserver) {
         System.out.println("Received GetParkingFee request for userId: " + request.getUserId());
@@ -31,7 +30,7 @@ public class ParkingPaymentServiceImpl extends ParkingPaymentServiceGrpc.Parking
 
         double feeAmount = durationInMinutes * ratePerMinute;
 
-        String currency = "USD";
+        String currency = "EUR";
 
         String transactionId = UUID.randomUUID().toString();
 
@@ -73,7 +72,7 @@ public class ParkingPaymentServiceImpl extends ParkingPaymentServiceGrpc.Parking
                 PaymentStatus paymentStatus = PaymentStatus.newBuilder()
                         .setStatus("success")
                         .setMessage("Payment processed successfully")
-                        .setTransactionId(UUID.randomUUID().toString())
+                        .setTransactionId(paymentInfo.getTransactionId())
                         .build();
                 responseObserver.onNext(paymentStatus);
             }

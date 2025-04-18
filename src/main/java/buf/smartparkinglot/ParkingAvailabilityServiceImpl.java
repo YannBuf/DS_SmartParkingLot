@@ -23,10 +23,11 @@ public class ParkingAvailabilityServiceImpl extends ParkingAvailabilityServiceGr
     private static final String[] STATUSES = {"available", "occupied", "maintenance"};
     private static final int TOTAL_SPOTS_PER_ZONE = 100;
     private static final List<String> ZONES = Arrays.asList("A", "B", "C", "D", "E");
-
+    
+    // For generating random data, used for simulating parking spot availability
     private final Random random = new Random();
 
-    //Simulate Parking Lot Data
+    // Simulate Parking Lot Data
     private Map<String, List<String>> generateParkingSpots() {
         Map<String, List<String>> zoneSpots = new HashMap<>();
         for (String zone : ZONES) {
@@ -38,7 +39,7 @@ public class ParkingAvailabilityServiceImpl extends ParkingAvailabilityServiceGr
         }
         return zoneSpots;
     }
-    //Generate data
+    // Generate the parking spots data
     private final Map<String, List<String>> parkingSpotsByZone = generateParkingSpots();
     
     
@@ -46,11 +47,11 @@ public class ParkingAvailabilityServiceImpl extends ParkingAvailabilityServiceGr
     @Override
     public void getRealTimeAvailability(AvailableSpotsRequest request, StreamObserver<AvailableSpotsResponse> responseObserver) {
 
-        // Simulate sending real-time updates every second for 5 seconds
+        // Get the parking zone ID from the request and convert it to uppercase
         String parkingZoneId = request.getParkingZoneId().toUpperCase();
         System.out.println("Received GetRealTimeAvailability request for parkingZoneId: " + parkingZoneId);
         
-        //If zone Id not in the list return Zone not found
+        // If the zone ID is not found in the list of available zones, return an error
         if(!parkingSpotsByZone.containsKey(parkingZoneId)){
             responseObserver.onError(new IllegalArgumentException("Zone '" + parkingZoneId + "' not found."));
             return;
@@ -69,12 +70,13 @@ public class ParkingAvailabilityServiceImpl extends ParkingAvailabilityServiceGr
                         .setTimestamp(timestamp)
                         .build();
                 
-                // Send each response to the client
+                // Send the response to the client
                 responseObserver.onNext(response);
+                // Sleep for 1 second before sending the next update
                 TimeUnit.SECONDS.sleep(1);
             }
         } catch (InterruptedException e) {
-            // Pass the error to the client if something goes wrong
+            // If an error occurs, notify the client
             responseObserver.onError(e);
         }
         responseObserver.onCompleted();
@@ -83,18 +85,22 @@ public class ParkingAvailabilityServiceImpl extends ParkingAvailabilityServiceGr
     // Implements the GetParkingSpaceStatus streaming RPC
     @Override
     public void getParkingSpaceStatus(ParkingSpaceStatusRequest request, StreamObserver<ParkingSpaceStatusResponse> responseObserver) {
+        // Get the parking zone ID from the request and convert it to uppercase
         String parkingZoneId = request.getParkingZoneId().toUpperCase();
         System.out.println("Received GetParkingSpaceStatus request for parkingZoneId: " + parkingZoneId);
 
+        // If the zone ID is not found in the list of available zones, return an error
         if (!parkingSpotsByZone.containsKey(parkingZoneId)) {
             responseObserver.onError(new IllegalArgumentException("Zone '" + parkingZoneId + "' not found."));
             return;
         }
-        
+
+        // Get the list of spot IDs for the selected zone
         List<String> spotIds = parkingSpotsByZone.get(parkingZoneId);
 
         for (String spotId : spotIds) {
             String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+            // Randomly select a status for this parking spot (available, occupied, or maintenance)
             String status = STATUSES[random.nextInt(STATUSES.length)];
 
             ParkingSpaceStatusResponse response = ParkingSpaceStatusResponse.newBuilder()

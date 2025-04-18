@@ -25,6 +25,8 @@ import generated.smartparkinglot.ParkingReservation.*;
 
 import buf.jmDNS.GrpcServiceDiscovery;
 
+import io.grpc.ClientInterceptors;
+
 public class GrpcClientGUI extends JFrame {
 
     private final JTextField availabilityZoneIdField = new JTextField(15);
@@ -42,6 +44,8 @@ public class GrpcClientGUI extends JFrame {
     private ParkingAvailabilityClient availabilityClient;
     private ParkingPaymentClient paymentClient;
     private ParkingReservationClient reservationClient;
+    
+    private String lastTransactionId = null; //save recent transactionId
 
     public GrpcClientGUI() {
         setTitle("Smart Parking Lot Client");
@@ -67,7 +71,9 @@ public class GrpcClientGUI extends JFrame {
         GrpcServiceDiscovery discovery = new GrpcServiceDiscovery();
         discovery.discoverService("_grpc._tcp.local.", (host, port) -> {
             System.out.println("Discovered service at " + host + ":" + port);
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port)
+                    .usePlaintext()
+                    .build();
             availabilityClient = new ParkingAvailabilityClient(channel);
             paymentClient = new ParkingPaymentClient(channel);
             reservationClient = new ParkingReservationClient(channel);
@@ -211,12 +217,12 @@ public class GrpcClientGUI extends JFrame {
     
     private void reserveParkingSpot(){
         String userId = reservationUserIdField.getText().trim();
-    String zoneId = reservationZoneIdField.getText().trim();
-    String spotId = spotIdField.getText().trim();
-    String start = startTimeField.getText().trim();
-    String end = endTimeField.getText().trim();
+        String zoneId = reservationZoneIdField.getText().trim();
+        String spotId = spotIdField.getText().trim();
+        String start = startTimeField.getText().trim();
+        String end = endTimeField.getText().trim();
 
-    ReservationRequest request = ReservationRequest.newBuilder()
+        ReservationRequest request = ReservationRequest.newBuilder()
             .setUserId(userId)
             .setParkingZoneId(zoneId)
             .setSpotId(spotId)
@@ -252,12 +258,13 @@ public class GrpcClientGUI extends JFrame {
         String parkingDuration = durationField.getText().trim();
         
         PaymentResponse response = paymentClient.getParkingFee(userId, parkingZoneId, parkingDuration);
+        lastTransactionId = response.getTransactionId();
         appendOutput("Fee: $" + response.getFeeAmount() + " " + response.getCurrency()
-                + " | Transaction ID: " + response.getTransactionId() + " | Status: " + response.getStatus() + "\n\n");
+                + " | Transaction ID: " + lastTransactionId + " | Status: " + response.getStatus() + "\n\n");
     }
 
     private void handlePayment() {
-        paymentClient.handlePayment(new StreamObserver<PaymentStatus>() {
+        StreamObserver<PaymentStatus> responseObserver = new StreamObserver<PaymentStatus>() {
             @Override
             public void onNext(PaymentStatus value) {
                 appendOutput("Payment " + value.getStatus() + " | Message: " + value.getMessage()
@@ -273,8 +280,36 @@ public class GrpcClientGUI extends JFrame {
             public void onCompleted() {
                 appendOutput("Payment stream completed.\n\n");
             }
-        });
+        };
+
+        String userId = userIdField.getText().trim();
+        String duration = durationField.getText().trim();
+        double amount = 0.0;
+
+        try {
+            int minutes = Integer.parseInt(duration);
+            amount = minutes * 0.5; 
+        } catch (NumberFormatException e) {
+            appendOutput("Invalid duration: " + duration + "\n");
+            return;
+        }
+
+        StreamObserver<PaymentInfo> requestObserver = paymentClient.handlePayment(responseObserver);
+        
+        if(lastTransactionId != null){
+            PaymentInfo info = PaymentInfo.newBuilder()
+                    .setTransactionId(lastTransactionId)
+                    .setUserId(userId)
+                    .setAmount(amount)
+                    .build();
+
+            requestObserver.onNext(info);
+            requestObserver.onCompleted();
+        } else {
+            appendOutput("No transaction ID available. Please calculate fee first.\n");
+        }
     }
+
     
 
 

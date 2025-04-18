@@ -16,6 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private PaymentInfo() {
+    transactionId_ = "";
     userId_ = "";
     amount_ = 0D;
   }
@@ -47,10 +48,16 @@ private static final long serialVersionUID = 0L;
           case 10: {
             java.lang.String s = input.readStringRequireUtf8();
 
+            transactionId_ = s;
+            break;
+          }
+          case 18: {
+            java.lang.String s = input.readStringRequireUtf8();
+
             userId_ = s;
             break;
           }
-          case 17: {
+          case 25: {
 
             amount_ = input.readDouble();
             break;
@@ -87,10 +94,44 @@ private static final long serialVersionUID = 0L;
             generated.smartparkinglot.ParkingPayment.PaymentInfo.class, generated.smartparkinglot.ParkingPayment.PaymentInfo.Builder.class);
   }
 
-  public static final int USERID_FIELD_NUMBER = 1;
+  public static final int TRANSACTIONID_FIELD_NUMBER = 1;
+  private volatile java.lang.Object transactionId_;
+  /**
+   * <code>string transactionId = 1;</code>
+   */
+  public java.lang.String getTransactionId() {
+    java.lang.Object ref = transactionId_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      transactionId_ = s;
+      return s;
+    }
+  }
+  /**
+   * <code>string transactionId = 1;</code>
+   */
+  public com.google.protobuf.ByteString
+      getTransactionIdBytes() {
+    java.lang.Object ref = transactionId_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      transactionId_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int USERID_FIELD_NUMBER = 2;
   private volatile java.lang.Object userId_;
   /**
-   * <code>string userId = 1;</code>
+   * <code>string userId = 2;</code>
    */
   public java.lang.String getUserId() {
     java.lang.Object ref = userId_;
@@ -105,7 +146,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>string userId = 1;</code>
+   * <code>string userId = 2;</code>
    */
   public com.google.protobuf.ByteString
       getUserIdBytes() {
@@ -121,10 +162,10 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int AMOUNT_FIELD_NUMBER = 2;
+  public static final int AMOUNT_FIELD_NUMBER = 3;
   private double amount_;
   /**
-   * <code>double amount = 2;</code>
+   * <code>double amount = 3;</code>
    */
   public double getAmount() {
     return amount_;
@@ -144,11 +185,14 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
+    if (!getTransactionIdBytes().isEmpty()) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, transactionId_);
+    }
     if (!getUserIdBytes().isEmpty()) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, userId_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, userId_);
     }
     if (amount_ != 0D) {
-      output.writeDouble(2, amount_);
+      output.writeDouble(3, amount_);
     }
     unknownFields.writeTo(output);
   }
@@ -159,12 +203,15 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
+    if (!getTransactionIdBytes().isEmpty()) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, transactionId_);
+    }
     if (!getUserIdBytes().isEmpty()) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, userId_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, userId_);
     }
     if (amount_ != 0D) {
       size += com.google.protobuf.CodedOutputStream
-        .computeDoubleSize(2, amount_);
+        .computeDoubleSize(3, amount_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -182,6 +229,8 @@ private static final long serialVersionUID = 0L;
     generated.smartparkinglot.ParkingPayment.PaymentInfo other = (generated.smartparkinglot.ParkingPayment.PaymentInfo) obj;
 
     boolean result = true;
+    result = result && getTransactionId()
+        .equals(other.getTransactionId());
     result = result && getUserId()
         .equals(other.getUserId());
     result = result && (
@@ -199,6 +248,8 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    hash = (37 * hash) + TRANSACTIONID_FIELD_NUMBER;
+    hash = (53 * hash) + getTransactionId().hashCode();
     hash = (37 * hash) + USERID_FIELD_NUMBER;
     hash = (53 * hash) + getUserId().hashCode();
     hash = (37 * hash) + AMOUNT_FIELD_NUMBER;
@@ -337,6 +388,8 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public Builder clear() {
       super.clear();
+      transactionId_ = "";
+
       userId_ = "";
 
       amount_ = 0D;
@@ -367,6 +420,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public generated.smartparkinglot.ParkingPayment.PaymentInfo buildPartial() {
       generated.smartparkinglot.ParkingPayment.PaymentInfo result = new generated.smartparkinglot.ParkingPayment.PaymentInfo(this);
+      result.transactionId_ = transactionId_;
       result.userId_ = userId_;
       result.amount_ = amount_;
       onBuilt();
@@ -417,6 +471,10 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(generated.smartparkinglot.ParkingPayment.PaymentInfo other) {
       if (other == generated.smartparkinglot.ParkingPayment.PaymentInfo.getDefaultInstance()) return this;
+      if (!other.getTransactionId().isEmpty()) {
+        transactionId_ = other.transactionId_;
+        onChanged();
+      }
       if (!other.getUserId().isEmpty()) {
         userId_ = other.userId_;
         onChanged();
@@ -453,9 +511,78 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    private java.lang.Object transactionId_ = "";
+    /**
+     * <code>string transactionId = 1;</code>
+     */
+    public java.lang.String getTransactionId() {
+      java.lang.Object ref = transactionId_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        transactionId_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>string transactionId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getTransactionIdBytes() {
+      java.lang.Object ref = transactionId_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        transactionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>string transactionId = 1;</code>
+     */
+    public Builder setTransactionId(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  
+      transactionId_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string transactionId = 1;</code>
+     */
+    public Builder clearTransactionId() {
+      
+      transactionId_ = getDefaultInstance().getTransactionId();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string transactionId = 1;</code>
+     */
+    public Builder setTransactionIdBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+      
+      transactionId_ = value;
+      onChanged();
+      return this;
+    }
+
     private java.lang.Object userId_ = "";
     /**
-     * <code>string userId = 1;</code>
+     * <code>string userId = 2;</code>
      */
     public java.lang.String getUserId() {
       java.lang.Object ref = userId_;
@@ -470,7 +597,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>string userId = 1;</code>
+     * <code>string userId = 2;</code>
      */
     public com.google.protobuf.ByteString
         getUserIdBytes() {
@@ -486,7 +613,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>string userId = 1;</code>
+     * <code>string userId = 2;</code>
      */
     public Builder setUserId(
         java.lang.String value) {
@@ -499,7 +626,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>string userId = 1;</code>
+     * <code>string userId = 2;</code>
      */
     public Builder clearUserId() {
       
@@ -508,7 +635,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>string userId = 1;</code>
+     * <code>string userId = 2;</code>
      */
     public Builder setUserIdBytes(
         com.google.protobuf.ByteString value) {
@@ -524,13 +651,13 @@ private static final long serialVersionUID = 0L;
 
     private double amount_ ;
     /**
-     * <code>double amount = 2;</code>
+     * <code>double amount = 3;</code>
      */
     public double getAmount() {
       return amount_;
     }
     /**
-     * <code>double amount = 2;</code>
+     * <code>double amount = 3;</code>
      */
     public Builder setAmount(double value) {
       
@@ -539,7 +666,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>double amount = 2;</code>
+     * <code>double amount = 3;</code>
      */
     public Builder clearAmount() {
       

@@ -26,8 +26,9 @@ service ParkingPaymentService {
   }
   
   message PaymentInfo {
-    string userId = 1;
-    double amount = 2;
+    string transactionId = 1;
+    string userId = 2;
+    double amount = 3;
 
   }
   

@@ -11,26 +11,21 @@ package buf.smartparkinglot;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import java.io.IOException;
-// For authentication
-import buf.grpcAuthentication.JwtServerInterceptor;
+
 
 // For DNS
 import buf.jmDNS.*;
-
-
 
 public class GrpcServer {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         int port = 5051;
-        
         //start grpc server
         Server server = ServerBuilder.forPort(port)
                 .addService(new ParkingAvailabilityServiceImpl())
                 .addService(new ParkingPaymentServiceImpl())
                 .addService(new ParkingReservationServiceImpl())
                 .build();
-                //.intercept(new JwtServerInterceptor()) //add Interceptor for authentication
         server.start();
         System.out.println("gRPC Server started on port " + port);
         

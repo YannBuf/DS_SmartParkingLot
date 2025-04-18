@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 //Registers a gRPC service using JmDNS.
-
 public class GrpcServiceRegistrar {
 
     private JmDNS jmdns;
@@ -33,7 +32,10 @@ public class GrpcServiceRegistrar {
     public void unregisterAllServices() {
         if (jmdns != null) {
             jmdns.unregisterAllServices();
-            System.out.println("🧹 Unregistered all services");
+            System.out.println("Unregistered all services");
         }
     }
 }
+
+
+

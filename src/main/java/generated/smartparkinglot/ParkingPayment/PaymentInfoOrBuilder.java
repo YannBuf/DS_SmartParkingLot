@@ -8,17 +8,27 @@ public interface PaymentInfoOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>string userId = 1;</code>
+   * <code>string transactionId = 1;</code>
+   */
+  java.lang.String getTransactionId();
+  /**
+   * <code>string transactionId = 1;</code>
+   */
+  com.google.protobuf.ByteString
+      getTransactionIdBytes();
+
+  /**
+   * <code>string userId = 2;</code>
    */
   java.lang.String getUserId();
   /**
-   * <code>string userId = 1;</code>
+   * <code>string userId = 2;</code>
    */
   com.google.protobuf.ByteString
       getUserIdBytes();
 
   /**
-   * <code>double amount = 2;</code>
+   * <code>double amount = 3;</code>
    */
   double getAmount();
 }

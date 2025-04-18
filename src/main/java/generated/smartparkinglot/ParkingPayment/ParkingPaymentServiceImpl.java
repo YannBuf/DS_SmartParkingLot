@@ -48,18 +48,18 @@ public final class ParkingPaymentServiceImpl {
       "\030\001 \001(\t\022\025\n\rparkingZoneId\030\002 \001(\t\022\027\n\017parking" +
       "Duration\030\003 \001(\t\"]\n\017PaymentResponse\022\021\n\tfee" +
       "Amount\030\001 \001(\001\022\020\n\010currency\030\002 \001(\t\022\025\n\rtransa" +
-      "ctionId\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\"-\n\013Payment" +
-      "Info\022\016\n\006userId\030\001 \001(\t\022\016\n\006amount\030\002 \001(\001\"G\n\r" +
-      "PaymentStatus\022\016\n\006status\030\001 \001(\t\022\017\n\007message" +
-      "\030\002 \001(\t\022\025\n\rtransactionId\030\003 \001(\t2\326\001\n\025Parkin" +
-      "gPaymentService\022^\n\rGetParkingFee\022%.Parki" +
-      "ngPaymentService.PaymentRequest\032&.Parkin" +
-      "gPaymentService.PaymentResponse\022]\n\rHandl" +
-      "ePayment\022\".ParkingPaymentService.Payment" +
-      "Info\032$.ParkingPaymentService.PaymentStat" +
-      "us(\0010\001BG\n(generated.smartparkinglot.Park" +
-      "ingPaymentB\031ParkingPaymentServiceImplP\001b" +
-      "\006proto3"
+      "ctionId\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\"D\n\013Payment" +
+      "Info\022\025\n\rtransactionId\030\001 \001(\t\022\016\n\006userId\030\002 " +
+      "\001(\t\022\016\n\006amount\030\003 \001(\001\"G\n\rPaymentStatus\022\016\n\006" +
+      "status\030\001 \001(\t\022\017\n\007message\030\002 \001(\t\022\025\n\rtransac" +
+      "tionId\030\003 \001(\t2\326\001\n\025ParkingPaymentService\022^" +
+      "\n\rGetParkingFee\022%.ParkingPaymentService." +
+      "PaymentRequest\032&.ParkingPaymentService.P" +
+      "aymentResponse\022]\n\rHandlePayment\022\".Parkin" +
+      "gPaymentService.PaymentInfo\032$.ParkingPay" +
+      "mentService.PaymentStatus(\0010\001BG\n(generat" +
+      "ed.smartparkinglot.ParkingPaymentB\031Parki" +
+      "ngPaymentServiceImplP\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -90,7 +90,7 @@ public final class ParkingPaymentServiceImpl {
     internal_static_ParkingPaymentService_PaymentInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ParkingPaymentService_PaymentInfo_descriptor,
-        new java.lang.String[] { "UserId", "Amount", });
+        new java.lang.String[] { "TransactionId", "UserId", "Amount", });
     internal_static_ParkingPaymentService_PaymentStatus_descriptor =
       getDescriptor().getMessageTypes().get(3);
     internal_static_ParkingPaymentService_PaymentStatus_fieldAccessorTable = new
